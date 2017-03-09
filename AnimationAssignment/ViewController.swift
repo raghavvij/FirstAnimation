@@ -33,9 +33,18 @@ class ViewController: UIViewController {
         let velocityInPanView:CGPoint = sender.velocity(in: expandableView)
         if sender.state == .ended {
             //Ripple Effect logic...
-            UIView.animate(withDuration: 3.0, animations: {
-                self.setEndedPanState(forView: expandableView, currentPositionInPanView: currentPointInPanView, currentPositionInSuperView: currentPointInSuperView, velocityInPanView: velocityInPanView)
-            })
+//            let shapeLayer = CAShapeLayer()
+//            shapeLayer.fillColor = UIColor.red.cgColor
+//            let basicAnimation = CABasicAnimation(keyPath: "path")
+//            let initialControlPoint = currentPointInPanView
+//            let finalControlPoint = CGPoint(x: (expandableView.frame.size.width)/2, y: (expandableView.frame.size.height)/2)
+//            basicAnimation.fromValue = expandableView.setupPathForView(forControlPoint: initialControlPoint, andRect: expandableView.frame).cgPath
+//            basicAnimation.toValue = expandableView.setupPathForView(forControlPoint: finalControlPoint, andRect: expandableView.frame).cgPath
+//            basicAnimation.duration = 0.3
+//            shapeLayer.add(basicAnimation, forKey: "animationKey")
+//            expandableView.layer.addSublayer(shapeLayer)
+//            expandableView.controlPoint = finalControlPoint
+//            expandableView.setNeedsDisplay()
         }else {
             //When pan gesture is active....
             self.setActivePanState(forView: expandableView, currentPositionInPanView: currentPointInPanView, currentPositionInSuperView: currentPointInSuperView, velocityInPanView: velocityInPanView)
@@ -55,7 +64,7 @@ class ViewController: UIViewController {
         if velocity.y >= 0 {
             //Animation for downward pan gesture
             if currentPointInPanView.y < (expandableView.frame.size.height)/2 {
-                //if current point's y position in pan view is less than half the height of the view.
+                //if panning is in background white section.
                 self.setupFrame(forView: expandableView,currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: false, controlPointInPanView: controlPoint)
             }else{
                 //This section executes as soon as the current position of gesture is greater than half the height of the frame of panView.
@@ -92,16 +101,17 @@ class ViewController: UIViewController {
             }
         }else {
             if let previousPoint = previousPointInSuperView {
-                self.setupExpandableView(ForcontrolPoint: controlPoint, forView: expandableView)
                 let changeInY = abs(previousPoint.y - currentPointInSuperView.y)
                 let height = rect.height - changeInY
                 let originY = rect.origin.y + changeInY
                 if height > MinHeight {
                     let frame = CGRect(x: (rect.origin.x), y: originY, width: (rect.size.width), height: height)
                     self.setupFrame(ForView: expandableView, withFrame: frame)
-                    expandableView.setNeedsDisplay()
                     rect = expandableView.frame
+                    let controlPoint = CGPoint(x: (rect.size.width)/2, y: (rect.size.height)/2)
+                    self.setupExpandableView(ForcontrolPoint: controlPoint, forView: expandableView)
                 }
+
             }
         }
     }
