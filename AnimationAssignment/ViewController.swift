@@ -33,9 +33,23 @@ class ViewController: UIViewController {
         let velocityInPanView:CGPoint = sender.velocity(in: expandableView)
         if sender.state == .ended {
             //Ripple Effect logic...
-            UIView.animate(withDuration: 3.0, animations: {
+            previousPointInSuperView = nil
+            if velocityInPanView.y <= 0 &&  currentPointInPanView.y < (expandableView.frame.size.height)/2{
+                let shapeLayer = CAShapeLayer()
+                shapeLayer.fillColor = UIColor.red.cgColor
+                let basicAnimation = CABasicAnimation(keyPath: "path")
+                let initialControlPoint = currentPointInPanView
+                let finalControlPoint = CGPoint(x: (expandableView.frame.size.width)/2, y: (expandableView.frame.size.height)/2)
+                basicAnimation.fromValue = expandableView.setupPathForView(forControlPoint: initialControlPoint, andRect: expandableView.frame).cgPath
+                basicAnimation.toValue = expandableView.setupPathForView(forControlPoint: finalControlPoint, andRect: expandableView.frame).cgPath
+                basicAnimation.duration = 0.3
+                shapeLayer.add(basicAnimation, forKey: "animationKey")
+                expandableView.layer.addSublayer(shapeLayer)
+                expandableView.controlPoint = finalControlPoint
+                expandableView.setNeedsDisplay()
+            }else {
                 self.setEndedPanState(forView: expandableView, currentPositionInPanView: currentPointInPanView, currentPositionInSuperView: currentPointInSuperView, velocityInPanView: velocityInPanView)
-            })
+            }
         }else {
             //When pan gesture is active....
             self.setActivePanState(forView: expandableView, currentPositionInPanView: currentPointInPanView, currentPositionInSuperView: currentPointInSuperView, velocityInPanView: velocityInPanView)
@@ -52,7 +66,7 @@ class ViewController: UIViewController {
     
     func setActivePanState(forView expandableView:ExpandableView,currentPositionInPanView currentPointInPanView:CGPoint,currentPositionInSuperView currentPointInSuperView:CGPoint,velocityInPanView velocity:CGPoint) {
         var controlPoint = CGPoint(x: (expandableView.frame.size.width)/2, y: (expandableView.frame.size.height)/2)
-        if velocity.y >= 0 {
+        if velocity.y > 0 {
             //Animation for downward pan gesture
             if currentPointInPanView.y < (expandableView.frame.size.height)/2 {
                 //if current point's y position in pan view is less than half the height of the view.
@@ -64,12 +78,22 @@ class ViewController: UIViewController {
         }else {
             //Animation for upward pan gesture
             //We simply have to decrease the height of the pan view in this case.
-            if currentPointInPanView.y > (expandableView.frame.size.height)/2 {
-                //if current point's y position in pan view is less than half the height of the view.
-                self.setupFrame(forView: expandableView, currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: true, controlPointInPanView: controlPoint)
+            if velocity.y != 0 {
+                if currentPointInPanView.y > (expandableView.frame.size.height)/2 {
+                    //if current point's y position in pan view is less than half the height of the view.
+                    self.setupFrame(forView: expandableView, currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: true, controlPointInPanView: controlPoint)
+                }else {
+                    controlPoint = currentPointInPanView
+                    self.setupFrame(forView: expandableView, currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: true, controlPointInPanView: controlPoint)
+                }
             }else {
-                controlPoint = currentPointInPanView
-                self.setupFrame(forView: expandableView, currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: true, controlPointInPanView: controlPoint)
+                if currentPointInPanView.y > (expandableView.frame.size.height)/2 {
+                    self.setupFrame(forView: expandableView, currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: true, controlPointInPanView: controlPoint)
+                }else {
+                    controlPoint = currentPointInPanView
+                    self.setupFrame(forView: expandableView, currentPositionInSuperView: currentPointInSuperView, isHeightIncreasing: true, controlPointInPanView: controlPoint)
+                }
+                
             }
         }
         previousPointInSuperView = currentPointInSuperView
